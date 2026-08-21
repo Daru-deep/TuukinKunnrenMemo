@@ -1,0 +1,520 @@
+/* 通勤記録アプリのスタイル
+   スマホで片手・急ぎ足で使うことを前提に、
+   - タップ対象は最低44px角
+   - 入力欄のフォントは16px以上（iOSで自動ズームされないため）
+   を守っている。 */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1f2933;
+  --muted: #6b7280;
+  --border: #d9dee5;
+  --accent: #0f766e;
+  --accent-weak: #ccfbf1;
+  --danger: #b91c1c;
+  --radius: 12px;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14181d;
+    --surface: #1c2128;
+    --text: #e6e9ee;
+    --muted: #9aa4b2;
+    --border: #2f3742;
+    --accent: #2dd4bf;
+    --accent-weak: #10403c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0 0 env(safe-area-inset-bottom);
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* ---- ヘッダーとタブ ---- */
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-top));
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: var(--accent);
+  color: #fff;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.app-header__count {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  min-height: 48px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab[aria-selected='true'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+main {
+  padding: 12px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ---- フォーム ---- */
+
+.record-form,
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem; /* 16px未満にするとiOSが勝手にズームする */
+  font-family: inherit;
+}
+
+textarea.input {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.time-row {
+  display: flex;
+  gap: 8px;
+}
+
+.time-row .input {
+  flex: 1;
+}
+
+/* 選択式（混雑度・遅延・寄り道）は横並びのボタン風にする */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choice {
+  flex: 1 1 auto;
+  min-width: 72px;
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choice span {
+  display: block;
+  min-height: 44px;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.choice input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.choice input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- ボタン ---- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.button--danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.button--now {
+  min-width: 64px;
+  font-weight: 700;
+}
+
+.button--wide {
+  flex: 1;
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.link {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ---- 計算結果と判定バッジ ---- */
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.result__duration {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.editing-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--accent-weak);
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.errors {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.9rem;
+  white-space: pre-line;
+}
+
+/* ---- GPS ---- */
+
+.gps {
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+}
+
+.gps__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gps__state {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.gps__state[data-active='true'] {
+  color: var(--danger);
+}
+
+.gps__info {
+  margin: 4px 0 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.gps__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gps__buttons .button {
+  flex: 1 1 30%;
+  padding: 0 8px;
+  font-size: 0.95rem;
+}
+
+/* ---- 地図 ---- */
+
+.map {
+  height: 260px;
+  margin-top: 12px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.map--mini {
+  height: 180px;
+}
+
+/* Leafletのタイルはダークモードでも白いまま。文字が読めるよう属性表示だけ調整する */
+.leaflet-container {
+  font-family: inherit;
+  background: var(--bg);
+}
+
+/* ---- 集計 ---- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.card__note {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.stat__title {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.stat__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat__sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.judge-summary {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---- 記録一覧 ---- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.record-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.record-row__date {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.record-row__times {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.record-row__duration {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ---- 詳細ダイアログ ---- */
+
+.detail {
+  width: min(92vw, 560px);
+  border: 0;
+  border-radius: var(--radius);
+  padding: 16px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.detail::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.detail dl {
+  display: grid;
+  grid-template-columns: 6.5em 1fr;
+  gap: 4px 10px;
+  margin: 10px 0;
+  font-size: 0.92rem;
+}
+
+.detail dt {
+  color: var(--muted);
+}
+
+.detail dd {
+  margin: 0;
+}
+
+.detail__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.detail__actions .button {
+  flex: 1;
+  padding: 0 8px;
+}
+
+/* ---- トースト ---- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 1000;
+  max-width: 88vw;
+  margin: 0;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #1f2933;
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 25%);
+}
+
+.toast[data-kind='error'] {
+  background: var(--danger);
+}
