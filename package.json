@@ -1,0 +1,14 @@
+{
+  "name": "tuukin-kunnren-memo",
+  "version": "1.0.0",
+  "description": "通勤訓練の記録アプリ（スマホ向けWebアプリ / 依存パッケージなし）",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  }
+}

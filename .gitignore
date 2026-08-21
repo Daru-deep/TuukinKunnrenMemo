@@ -1,0 +1,19 @@
+# ---- 個人情報を含むデータは絶対にコミットしない ----
+# 記録本体・GPS軌跡（自宅や職場の位置が特定できるため）
+data/
+*.xlsx
+!sample/*.xlsx
+
+# 動作確認用の一時ファイル
+tmp/
+*.log
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
