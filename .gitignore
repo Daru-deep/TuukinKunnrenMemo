@@ -17,3 +17,8 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# TLSの鍵と証明書（絶対にコミットしない）
+*.pem
+*.key
+*.crt
