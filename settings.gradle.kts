@@ -20,5 +20,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "通勤記録"
+// プロジェクト名はASCIIにしておく（Gradleのキャッシュ配下のパスやWindowsの
+// コンソール文字コードで面倒が起きにくい）。画面に出るアプリ名は
+// app/src/main/res/values/strings.xml の「通勤記録」の方。
+rootProject.name = "TuukinKunnrenMemo"
 include(":app")
