@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +26,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,6 +66,8 @@ fun EntryScreen(
     onReset: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var confirmReset by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -153,8 +160,18 @@ fun EntryScreen(
             Button(onClick = onSave, modifier = Modifier.weight(1f)) {
                 Text(if (draft.isEditing) "更新する" else "保存する")
             }
-            OutlinedButton(onClick = onReset) { Text("クリア") }
+            OutlinedButton(onClick = { confirmReset = true }) { Text("クリア") }
         }
+    }
+
+    if (confirmReset) {
+        ConfirmDialog(
+            title = "入力をクリアしますか？",
+            message = "入力した時刻と、記録したGPSの軌跡をすべて捨てます。",
+            confirmLabel = "クリアする",
+            onConfirm = onReset,
+            onDismiss = { confirmReset = false },
+        )
     }
 }
 
@@ -236,10 +253,22 @@ private fun GpsCard(
 ) {
     val context = LocalContext.current
 
+    var confirmClear by remember { mutableStateOf(false) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { granted ->
         if (granted[Manifest.permission.ACCESS_FINE_LOCATION] == true) onStart()
+    }
+
+    if (confirmClear) {
+        ConfirmDialog(
+            title = "軌跡を破棄しますか？",
+            message = "記録したGPSの軌跡を捨てます。入力した時刻は残ります。",
+            confirmLabel = "破棄する",
+            onConfirm = onClear,
+            onDismiss = { confirmClear = false },
+        )
     }
 
     Card {
@@ -283,7 +312,10 @@ private fun GpsCard(
                 OutlinedButton(onClick = onStop, enabled = isRecording, modifier = Modifier.weight(1f)) {
                     Text("停止")
                 }
-                OutlinedButton(onClick = onClear, enabled = track.isNotEmpty()) { Text("破棄") }
+                OutlinedButton(
+                    onClick = { confirmClear = true },
+                    enabled = track.isNotEmpty(),
+                ) { Text("破棄") }
             }
 
             if (track.isNotEmpty()) {
@@ -291,6 +323,32 @@ private fun GpsCard(
             }
         }
     }
+}
+
+/**
+ * 取り消せない操作の前に一度だけ聞く。
+ * 通勤中に片手で操作するので、誤タップで入力やGPS軌跡が消えると痛い。
+ */
+@Composable
+private fun ConfirmDialog(
+    title: String,
+    message: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss()
+                onConfirm()
+            }) { Text(confirmLabel, color = MaterialTheme.colorScheme.error) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("やめる") } },
+    )
 }
 
 @Composable
