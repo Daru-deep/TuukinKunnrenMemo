@@ -67,6 +67,7 @@ fun EntryScreen(
     modifier: Modifier = Modifier,
 ) {
     var confirmReset by remember { mutableStateOf(false) }
+    val setup = rememberDeviceSetupState()
 
     Column(
         modifier = modifier
@@ -77,6 +78,10 @@ fun EntryScreen(
         if (draft.isEditing) {
             EditingBanner(onCancel = onReset)
         }
+
+        // 端末の設定が足りないときだけ出る。そろっていれば何も出ない。
+        // 記録開始を押すより前に気づけるよう、いちばん上に置いている。
+        DeviceSetupCard(state = setup, modifier = Modifier.fillMaxWidth())
 
         DateField(date = draft.date, onChange = { date -> onDraftChange { it.copy(date = date) } })
 

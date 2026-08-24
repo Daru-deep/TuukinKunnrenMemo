@@ -21,6 +21,15 @@
     <!-- Android 13以降、通知を出すには許可が要る（記録中の通知に使う） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+      「電池の最適化から除外しますか？」のダイアログを直接出すためのもの。
+      端末の設定画面を開くだけで、除外するかどうかを決めるのは利用者。
+      通勤のあいだ1時間ほど記録を続けるので、最適化に任せたままだと
+      画面を消している間にサービスを止められてしまう。
+      ※Google Playで配る場合はこの権限の用途を申告する必要がある。
+    -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <application

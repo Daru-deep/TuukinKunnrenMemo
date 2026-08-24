@@ -2,6 +2,7 @@ package com.tuukinmemo.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tuukinmemo.model.CommuteRecord
@@ -64,6 +66,13 @@ fun SummaryScreen(
 ) {
     var detail by remember { mutableStateOf<CommuteRecord?>(null) }
 
+    // サンプル記録のボタンは普段は隠しておく。
+    // 実際の記録に混ざると見分けがつかなくなるうえ、消すのが手間なので、
+    // 「記録一覧」を長押ししたときだけ出す。
+    var devVisible by remember { mutableStateOf(false) }
+    var confirmSamples by remember { mutableStateOf(false) }
+    val setup = rememberDeviceSetupState()
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
@@ -86,7 +95,16 @@ fun SummaryScreen(
         }
 
         item {
-            Text("記録一覧", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "記録一覧",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.pointerInput(onCreateSampleData) {
+                    // デバッグビルドでだけ反応する隠し操作
+                    if (onCreateSampleData != null) {
+                        detectTapGestures(onLongPress = { devVisible = true })
+                    }
+                },
+            )
         }
 
         if (records.isEmpty()) {
@@ -108,13 +126,43 @@ fun SummaryScreen(
             ExportCard(count = records.size, onExport = onExport)
         }
 
-        onCreateSampleData?.let { createSamples ->
+        // 端末の設定は、足りていても一覧で確認できるようにしておく
+        item {
+            DeviceSetupCard(state = setup, alwaysShow = true, modifier = Modifier.fillMaxWidth())
+        }
+
+        if (onCreateSampleData != null && devVisible) {
             item {
-                TextButton(onClick = createSamples, modifier = Modifier.fillMaxWidth()) {
+                TextButton(
+                    onClick = { confirmSamples = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Text("［開発用］サンプル記録を10日ぶん作る")
                 }
             }
         }
+    }
+
+    if (confirmSamples && onCreateSampleData != null) {
+        AlertDialog(
+            onDismissRequest = { confirmSamples = false },
+            title = { Text("サンプル記録を作りますか？") },
+            text = {
+                Text(
+                    "動作確認用の記録を20件（10日ぶん）追加します。" +
+                        "実際の記録と同じ一覧に並ぶので、あとで消すのが手間になります。",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmSamples = false
+                    onCreateSampleData()
+                }) { Text("作る") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmSamples = false }) { Text("やめる") }
+            },
+        )
     }
 
     detail?.let { record ->
