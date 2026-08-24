@@ -1,24 +1,24 @@
-# ---- 個人情報を含むデータは絶対にコミットしない ----
-# 記録本体・GPS軌跡（自宅や職場の位置が特定できるため）
-data/
+# ---- 個人情報を含むものは絶対にコミットしない ----
+# 書き出したxlsx（通勤時刻や寄り道の記録が入る）
 *.xlsx
-!sample/*.xlsx
+# 端末から吸い出したデータ
+/backup/
+*.ab
 
-# 動作確認用の一時ファイル
-tmp/
-*.log
+# ---- Android / Gradle ----
+*.iml
+.gradle/
+local.properties
+.idea/
+build/
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+*.keystore
+*.jks
 
-# Node
-node_modules/
-npm-debug.log*
-
-# OS / エディタ
+# ---- OS ----
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
-
-# TLSの鍵と証明書（絶対にコミットしない）
-*.pem
-*.key
-*.crt

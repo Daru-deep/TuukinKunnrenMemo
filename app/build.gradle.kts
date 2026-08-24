@@ -36,6 +36,8 @@ android {
 
     buildFeatures {
         compose = true
+        // BuildConfig.DEBUG を使ってデバッグ専用の機能を切り分けるため
+        buildConfig = true
     }
 }
 
