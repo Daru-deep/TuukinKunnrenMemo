@@ -85,11 +85,29 @@ fun EntryScreen(
 
         DateField(date = draft.date, onChange = { date -> onDraftChange { it.copy(date = date) } })
 
+        // 行きは 起床 → 出発 → 自宅最寄り駅着 → 乗車 → 職場最寄り駅着 → ビル到着 の順に並べる。
+        // 起床と駅着は任意（空のままでも保存できる）。
+        if (direction.stageTimes) {
+            TimeField(
+                label = "起床時刻",
+                time = draft.wakeTime,
+                onChange = { time -> onDraftChange { it.copy(wakeTime = time) } },
+            )
+        }
+
         TimeField(
             label = "出発時刻",
             time = draft.departureTime,
             onChange = { time -> onDraftChange { it.copy(departureTime = time) } },
         )
+
+        if (direction.stageTimes) {
+            TimeField(
+                label = "自宅最寄り駅 到着",
+                time = draft.homeStationTime,
+                onChange = { time -> onDraftChange { it.copy(homeStationTime = time) } },
+            )
+        }
 
         TimeField(
             label = "乗車電車（発車時刻）",
@@ -111,8 +129,16 @@ fun EntryScreen(
             onSelect = { delayed -> onDraftChange { it.copy(delayed = delayed) } },
         )
 
+        if (direction.stageTimes) {
+            TimeField(
+                label = "職場最寄り駅 到着",
+                time = draft.workStationTime,
+                onChange = { time -> onDraftChange { it.copy(workStationTime = time) } },
+            )
+        }
+
         TimeField(
-            label = "到着時刻（${direction.arrivalLabel}）",
+            label = direction.arrivalLabel,
             time = draft.arrivalTime,
             onChange = { time -> onDraftChange { it.copy(arrivalTime = time) } },
         )

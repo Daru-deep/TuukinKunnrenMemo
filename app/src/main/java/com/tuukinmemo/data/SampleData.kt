@@ -29,8 +29,11 @@ object SampleData {
                 RecordDraft(
                     direction = Direction.OUTBOUND,
                     date = date,
+                    wakeTime = departure.minusMinutes(45 + jitter(10)),
                     departureTime = departure,
+                    homeStationTime = departure.plusMinutes(5 + jitter(1)),
                     trainTime = departure.plusMinutes(10 + jitter(3)),
+                    workStationTime = departure.plusMinutes(duration - 10 + jitter(2)),
                     crowding = Crowding.entries.random(),
                     delayed = delayed,
                     arrivalTime = departure.plusMinutes(duration),

@@ -145,5 +145,40 @@ class RecordStoreTest {
         store.delete("../../etc/passwd") // 例外にならず、何も壊さない
     }
 
+    @Test
+    fun `起床と駅着も保存して読み直せる`() {
+        val saved = store.create(
+            draft().copy(
+                wakeTime = LocalTime.parse("06:50"),
+                homeStationTime = LocalTime.parse("07:51"),
+                workStationTime = LocalTime.parse("08:18"),
+            ),
+            emptyList(),
+        )
+
+        val record = store.find(saved.id)!!
+        assertEquals(LocalTime.parse("06:50"), record.wakeTime)
+        assertEquals(LocalTime.parse("07:51"), record.homeStationTime)
+        assertEquals(LocalTime.parse("08:18"), record.workStationTime)
+    }
+
+    @Test
+    fun `起床と駅着が無い古い記録もそのまま読める`() {
+        // 項目を足す前に保存した records.json と同じ形
+        File(dir, "records.json").writeText(
+            """[{"id":"5aef7d72-83b6-4b23-ab50-4aba5e078177","direction":"outbound",""" +
+                """"date":"2026-08-24","departureTime":"08:30","trainTime":"08:42",""" +
+                """"crowding":"crowded","delayed":true,"arrivalTime":"09:15","detour":false,""" +
+                """"detourNote":"","note":"","trackPoints":0,"trackDistanceKm":0,""" +
+                """"createdAt":1,"updatedAt":2}]""",
+        )
+
+        val record = store.load().single()
+        assertEquals(LocalTime.parse("09:15"), record.arrivalTime)
+        assertNull(record.wakeTime)
+        assertNull(record.homeStationTime)
+        assertNull(record.workStationTime)
+    }
+
     private fun assertFalse(value: Boolean, message: String = "") = assertTrue(!value, message)
 }

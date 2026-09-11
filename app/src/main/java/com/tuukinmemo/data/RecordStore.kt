@@ -154,8 +154,11 @@ class RecordStore(private val baseDir: File) {
         .put("id", record.id)
         .put("direction", record.direction.id)
         .put("date", record.date.toString())
+        .put("wakeTime", formatTime(record.wakeTime))
         .put("departureTime", formatTime(record.departureTime))
+        .put("homeStationTime", formatTime(record.homeStationTime))
         .put("trainTime", formatTime(record.trainTime))
+        .put("workStationTime", formatTime(record.workStationTime))
         .put("crowding", record.crowding?.id ?: "")
         .put("delayed", record.delayed)
         .put("arrivalTime", formatTime(record.arrivalTime))
@@ -171,9 +174,13 @@ class RecordStore(private val baseDir: File) {
         id = json.getString("id"),
         direction = Direction.fromId(json.optString("direction")) ?: Direction.OUTBOUND,
         date = LocalDate.parse(json.getString("date")),
+        // 起床・駅着は後から足した項目。古い記録には無いので null のまま読む
+        wakeTime = parseTime(json.optString("wakeTime")),
         departureTime = parseTime(json.getString("departureTime"))
             ?: error("出発時刻が壊れています"),
+        homeStationTime = parseTime(json.optString("homeStationTime")),
         trainTime = parseTime(json.optString("trainTime")),
+        workStationTime = parseTime(json.optString("workStationTime")),
         crowding = Crowding.fromId(json.optString("crowding")),
         delayed = json.optBoolean("delayed"),
         arrivalTime = parseTime(json.getString("arrivalTime"))

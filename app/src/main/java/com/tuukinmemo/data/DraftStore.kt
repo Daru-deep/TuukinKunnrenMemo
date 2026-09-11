@@ -31,8 +31,11 @@ class DraftStore(context: Context) {
                 editingId = json.optString("editingId").ifEmpty { null },
                 date = json.optString("date").takeIf { it.isNotEmpty() }
                     ?.let { LocalDate.parse(it) } ?: LocalDate.now(),
+                wakeTime = parseTime(json.optString("wakeTime")),
                 departureTime = parseTime(json.optString("departureTime")),
+                homeStationTime = parseTime(json.optString("homeStationTime")),
                 trainTime = parseTime(json.optString("trainTime")),
+                workStationTime = parseTime(json.optString("workStationTime")),
                 crowding = Crowding.fromId(json.optString("crowding")),
                 delayed = json.optBoolean("delayed"),
                 arrivalTime = parseTime(json.optString("arrivalTime")),
@@ -47,8 +50,11 @@ class DraftStore(context: Context) {
         val json = JSONObject()
             .put("editingId", draft.editingId ?: "")
             .put("date", draft.date.toString())
+            .put("wakeTime", formatTime(draft.wakeTime))
             .put("departureTime", formatTime(draft.departureTime))
+            .put("homeStationTime", formatTime(draft.homeStationTime))
             .put("trainTime", formatTime(draft.trainTime))
+            .put("workStationTime", formatTime(draft.workStationTime))
             .put("crowding", draft.crowding?.id ?: "")
             .put("delayed", draft.delayed)
             .put("arrivalTime", formatTime(draft.arrivalTime))

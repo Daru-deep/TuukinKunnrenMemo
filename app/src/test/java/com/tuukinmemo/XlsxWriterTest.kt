@@ -107,6 +107,23 @@ class XlsxWriterTest {
     }
 
     @Test
+    fun `起床と駅着の列が出る`() {
+        val outbound = record("2026-09-11", "07:40", "08:36").copy(
+            wakeTime = LocalTime.parse("06:50"),
+            homeStationTime = LocalTime.parse("07:46"),
+            workStationTime = LocalTime.parse("08:28"),
+        )
+        val sheet = unzip(XlsxWriter.build(listOf(outbound))).getValue("xl/worksheets/sheet1.xml")
+
+        listOf("起床時刻", "自宅最寄り駅着", "職場最寄り駅着").forEach {
+            assertTrue(sheet.contains(">$it<"), "見出し $it")
+        }
+        listOf("06:50", "07:46", "08:28").forEach {
+            assertTrue(sheet.contains(">$it<"), "値 $it")
+        }
+    }
+
+    @Test
     fun `GPS座標そのものは出力しない（位置が分かるファイルを配らないため）`() {
         val sheet = unzip(XlsxWriter.build(records)).getValue("xl/worksheets/sheet1.xml")
         assertFalse(sheet.contains("35.68"))

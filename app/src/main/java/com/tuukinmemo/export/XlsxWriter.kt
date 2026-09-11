@@ -36,8 +36,13 @@ object XlsxWriter {
         Column("日付", 12) { it.date.toString() },
         Column("曜日", 8) { formatDateShort(it.date).substringAfter('(').trimEnd(')') },
         Column("区分", 8) { it.direction.label },
+        // 起床・駅着は行きだけ。帰りの行は空欄になる
+        Column("起床時刻", 10) { formatTime(it.wakeTime) },
         Column("出発時刻", 10) { formatTime(it.departureTime) },
+        Column("自宅最寄り駅着", 14) { formatTime(it.homeStationTime) },
         Column("乗車電車", 10) { formatTime(it.trainTime) },
+        Column("職場最寄り駅着", 14) { formatTime(it.workStationTime) },
+        // 行きはビル到着、帰りは最寄り駅ホーム到着
         Column("到着時刻", 10) { formatTime(it.arrivalTime) },
         Column("所要時間(分)", 12, numeric = true) { it.durationMinutes },
         Column("所要時間", 12) { formatDuration(it.durationMinutes) },

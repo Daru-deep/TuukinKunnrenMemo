@@ -64,7 +64,7 @@ fun parseTime(text: String?): LocalTime? {
  */
 fun validateDraft(draft: RecordDraft): List<String> = buildList {
     if (draft.departureTime == null) add("出発時刻を入力してください")
-    if (draft.arrivalTime == null) add("到着時刻を入力してください")
+    if (draft.arrivalTime == null) add("${draft.direction.arrivalLabel}を入力してください")
     if (draft.date.year < 2000) add("日付が不正です")
 }
 
@@ -81,12 +81,17 @@ fun RecordDraft.toRecord(
 ): CommuteRecord {
     val errors = validateDraft(this)
     require(errors.isEmpty()) { errors.joinToString(" / ") }
+    // 起床・駅着は行きだけの項目。帰りの記録には持たせない
+    val stages = direction.stageTimes
     return CommuteRecord(
         id = id,
         direction = direction,
         date = date,
+        wakeTime = wakeTime.takeIf { stages },
         departureTime = departureTime!!,
+        homeStationTime = homeStationTime.takeIf { stages },
         trainTime = trainTime,
+        workStationTime = workStationTime.takeIf { stages },
         crowding = crowding,
         delayed = delayed,
         arrivalTime = arrivalTime!!,

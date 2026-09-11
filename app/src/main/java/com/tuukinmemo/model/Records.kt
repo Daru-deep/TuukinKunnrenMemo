@@ -11,10 +11,21 @@ import java.time.LocalTime
  * 画面やGPSの都合はすべて外側（ui / location）に置く。
  */
 
-/** 行き / 帰り */
-enum class Direction(val id: String, val label: String, val arrivalLabel: String) {
-    OUTBOUND("outbound", "行き", "職場ビル到着"),
-    INBOUND("inbound", "帰り", "最寄り駅ホーム到着");
+/**
+ * 行き / 帰り
+ *
+ * @param arrivalLabel 到着時刻の欄の名前（行きはビル到着＝判定に使う時刻）
+ * @param stageTimes 起床・自宅最寄り駅着・職場最寄り駅着も記録するか。
+ *   行きだけ。帰りは出発・乗車・到着だけの参考記録にしている。
+ */
+enum class Direction(
+    val id: String,
+    val label: String,
+    val arrivalLabel: String,
+    val stageTimes: Boolean,
+) {
+    OUTBOUND("outbound", "行き", "ビル到着時刻", stageTimes = true),
+    INBOUND("inbound", "帰り", "到着時刻（最寄り駅ホーム到着）", stageTimes = false);
 
     companion object {
         fun fromId(id: String?): Direction? = entries.firstOrNull { it.id == id }
@@ -56,7 +67,7 @@ enum class Judgement(
     LATE("late", "遅刻", null, 0xFFB91C1C, 0xFFFEE2E2, "FFFFC7CE");
 
     companion object {
-        /** 判定を適用する区分（＝行きの「職場到着」だけ）。帰りは参考記録なので判定しない。 */
+        /** 判定を適用する区分（＝行きの「ビル到着」だけ）。帰りは参考記録なので判定しない。 */
         val JUDGED_DIRECTION = Direction.OUTBOUND
 
         fun of(direction: Direction, arrivalTime: LocalTime?): Judgement? {
@@ -74,13 +85,22 @@ data class TrackPoint(
     val accuracyMeters: Float,
 )
 
-/** 保存済みの1件 */
+/**
+ * 保存済みの1件
+ *
+ * 行きの時刻は 起床 → 出発 → 自宅最寄り駅着 → 乗車電車 → 職場最寄り駅着 → ビル到着 の順。
+ * 所要時間と判定は、これまでどおり「出発」と「到着（＝ビル到着）」で出す。
+ * 起床と駅着は後から足した項目なので、古い記録では null になる。
+ */
 data class CommuteRecord(
     val id: String,
     val direction: Direction,
     val date: LocalDate,
+    val wakeTime: LocalTime? = null,
     val departureTime: LocalTime,
+    val homeStationTime: LocalTime? = null,
     val trainTime: LocalTime?,
+    val workStationTime: LocalTime? = null,
     val crowding: Crowding?,
     val delayed: Boolean,
     val arrivalTime: LocalTime,
@@ -109,8 +129,11 @@ data class RecordDraft(
     /** 編集中の既存レコードid。新規なら null */
     val editingId: String? = null,
     val date: LocalDate = LocalDate.now(),
+    val wakeTime: LocalTime? = null,
     val departureTime: LocalTime? = null,
+    val homeStationTime: LocalTime? = null,
     val trainTime: LocalTime? = null,
+    val workStationTime: LocalTime? = null,
     val crowding: Crowding? = null,
     val delayed: Boolean = false,
     val arrivalTime: LocalTime? = null,
@@ -136,8 +159,11 @@ fun CommuteRecord.toDraft(): RecordDraft = RecordDraft(
     direction = direction,
     editingId = id,
     date = date,
+    wakeTime = wakeTime,
     departureTime = departureTime,
+    homeStationTime = homeStationTime,
     trainTime = trainTime,
+    workStationTime = workStationTime,
     crowding = crowding,
     delayed = delayed,
     arrivalTime = arrivalTime,

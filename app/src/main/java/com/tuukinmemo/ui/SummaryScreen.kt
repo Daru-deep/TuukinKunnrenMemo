@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -43,6 +45,7 @@ import com.tuukinmemo.model.TrackPoint
 import com.tuukinmemo.model.formatDateShort
 import com.tuukinmemo.model.formatDuration
 import com.tuukinmemo.model.formatTime
+import java.time.LocalTime
 import kotlin.math.roundToLong
 
 /**
@@ -327,14 +330,22 @@ private fun RecordDetailDialog(
 
     LaunchedEffect(record.id) { track = loadTrack(record.id) }
 
-    val rows = listOf(
-        "日付" to formatDateShort(record.date),
-        "区分" to record.direction.label,
-        "出発" to formatTime(record.departureTime),
-        "乗車電車" to formatTime(record.trainTime).ifEmpty { "—" },
-        "到着" to formatTime(record.arrivalTime),
+    val stages = record.direction.stageTimes
+    // 空欄は「未入力」と書く。「—」1文字だけにすると、Xiaomi(HyperOS)の標準フォントでは
+    // 幅がほぼ0で描かれ、欄ごと消えたように見えた（実機で確認）
+    fun optional(time: LocalTime?) = formatTime(time).ifEmpty { "未入力" }
+    val rows = buildList {
+        add("日付" to formatDateShort(record.date))
+        add("区分" to record.direction.label)
+        if (stages) add("起床" to optional(record.wakeTime))
+        add("出発" to formatTime(record.departureTime))
+        if (stages) add("自宅最寄り駅着" to optional(record.homeStationTime))
+        add("乗車電車" to optional(record.trainTime))
+        if (stages) add("職場最寄り駅着" to optional(record.workStationTime))
+        add((if (stages) "ビル到着" else "到着") to formatTime(record.arrivalTime))
+    } + listOf(
         "所要時間" to formatDuration(record.durationMinutes),
-        "混雑度" to (record.crowding?.label ?: "—"),
+        "混雑度" to (record.crowding?.label ?: "未入力"),
         "遅延" to if (record.delayed) "あり" else "なし",
         "寄り道" to if (record.detour) "あり（${record.detourNote.ifEmpty { "メモなし" }}）" else "なし",
         "判定" to (record.judgement?.label ?: "—（帰りは判定なし）"),
@@ -343,19 +354,24 @@ private fun RecordDetailDialog(
         } else {
             "記録なし"
         },
-        "メモ" to record.note.ifEmpty { "—" },
+        "メモ" to record.note.ifEmpty { "なし" },
     )
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("記録の詳細") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            // 行きは項目が多く、地図まで入れると画面に収まらない端末があるのでスクロールさせる
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 rows.forEach { (label, value) ->
                     Row {
                         Text(
                             label,
-                            modifier = Modifier.width(88.dp),
+                            // 「職場最寄り駅着」が1行に収まる幅
+                            modifier = Modifier.width(104.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                         )

@@ -116,6 +116,39 @@ class CommuteTest {
         assertEquals(40, draft.durationMinutes)
     }
 
+    @Test
+    fun `起床と駅着は行きだけ記録に残り、所要時間と判定はビル到着のまま`() {
+        val draft = RecordDraft(
+            direction = Direction.OUTBOUND,
+            date = LocalDate.of(2026, 9, 11),
+            wakeTime = time("06:50"),
+            departureTime = time("07:40"),
+            homeStationTime = time("07:46"),
+            trainTime = time("07:52"),
+            workStationTime = time("08:28"),
+            arrivalTime = time("08:36"),
+        )
+
+        val outbound = draft.toRecord("a", 0, 0.0, 0, 0)
+        assertEquals(time("06:50"), outbound.wakeTime)
+        assertEquals(time("07:46"), outbound.homeStationTime)
+        assertEquals(time("08:28"), outbound.workStationTime)
+        assertEquals(56, outbound.durationMinutes, "所要時間は出発→ビル到着")
+        assertEquals(Judgement.WARN, outbound.judgement, "判定はビル到着の8:36")
+        assertEquals(time("06:50"), outbound.toDraft().wakeTime, "編集に戻しても残る")
+
+        val inbound = draft.copy(direction = Direction.INBOUND).toRecord("b", 0, 0.0, 0, 0)
+        assertNull(inbound.wakeTime, "帰りには持たせない")
+        assertNull(inbound.homeStationTime)
+        assertNull(inbound.workStationTime)
+    }
+
+    @Test
+    fun `到着が空のときは欄の名前で知らせる`() {
+        val errors = validateDraft(RecordDraft(direction = Direction.OUTBOUND, departureTime = time("07:40")))
+        assertEquals(listOf("ビル到着時刻を入力してください"), errors)
+    }
+
     private fun sample(
         date: String,
         departure: String,
